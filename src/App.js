@@ -1,25 +1,55 @@
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+// import Sidebar from "./Components/Sidebar/Sidebar";
+import DataTableProvider from "./Contexts/DataTableContext";
+import { CurrentUserProvider } from "./Contexts/CurrentUserContext";
+import { SnackbarProvider } from "./Contexts/SnackbarContext";
+import GpcTools from "./Pages/GpcTools/GpcTools";
 
-function App() {
+const App = () => {
+  const MainLayout = ({ children }) => {
+    return (
+      <div className="main-layout-container">
+        {/* <Sidebar /> */}
+        <span className="right-layout">{children}</span>
+      </div>
+    );
+  };
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <>
+      <DataTableProvider>
+        <SnackbarProvider>
+          <CurrentUserProvider>
+
+            <div>
+              <BrowserRouter>
+                <Routes>
+                  {/* <Route path="/" element={<Login />} /> */}
+                  <Route path="/" element={<GpcTools />} />
+                  
+
+                  <Route
+                    path="/*"
+                    element={
+                      <MainLayout>
+                        <Routes>
+                          {/* <Route path="/dashboard" element={<Dashboard />} /> */}
+                        </Routes>
+                      </MainLayout>
+                    }
+                  />
+                </Routes>
+              </BrowserRouter>
+
+
+            </div>
+          </CurrentUserProvider>
+        </SnackbarProvider>
+      </DataTableProvider>
+
+
+    </>
   );
-}
+};
 
 export default App;
