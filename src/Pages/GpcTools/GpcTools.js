@@ -1,16 +1,20 @@
 import React, { useState } from 'react'
 import gtrackIcon from '../../Images/gtrackicons.png'
 import { BiSolidRightArrow } from 'react-icons/bi';
+import { Autocomplete, TextField } from '@mui/material';
 
 const GpcTools = () => {
-   const [activeTab, setActiveTab] = useState('GPC');
-  
+    const [activeTab, setActiveTab] = useState('GPC');
+    const [isSubmenuVisible, setIsSubmenuVisible] = useState(false);
+    const [unitCode, setUnitCode] = useState([]);
+    const [selectedUnitCode, setSelectedUnitCode] = useState('');
+   
+    
    const handleTabChange = (tab) => {
       setActiveTab(tab);
     
     };
 
-    const [isSubmenuVisible, setIsSubmenuVisible] = useState(false);
 
     const handleSelectChange = (event) => {
         if (event.target.value === 'GPC') {
@@ -19,13 +23,20 @@ const GpcTools = () => {
           setIsSubmenuVisible(false);
         }
       };
+
+    
+      const handleKeywordsChange = (event, value) => {
+        console.log(value);
+        setSelectedUnitCode(value);
+    };
+
     
 
   return (
     <div>
       <div className="py-1">
 
-        <div className='h-24 w-full flex justify-between bg-gray-100'>
+        <div className='h-24 w-full flex justify-between bg-gray-100 px-4'>
             <div className='p-2 w-[50%]'>
                 <label className='font-semibold text-sm text-slate-700'>Source</label>
                 <div className='relative'>
@@ -40,7 +51,7 @@ const GpcTools = () => {
                         <option>EUDAMED</option>
                         <option>NCS</option>
                     </select>
-                    {/* {isSubmenuVisible && (
+                    {isSubmenuVisible && (
                         <div className="absolute z-10 flex flex-col gap-2 bg-white px-4 py-2 rounded-md shadow-lg mt-2 space-y-1 ml-10 w-full sm:w-[60%]">
                         <div className="flex justify-start items-center gap-2 hover:bg-gray-200 cursor-pointer"><BiSolidRightArrow /> Family</div>
                         <div className="flex justify-start items-center gap-2 hover:bg-gray-200 cursor-pointer"><BiSolidRightArrow /> Segment</div>
@@ -48,16 +59,59 @@ const GpcTools = () => {
                         <div className="flex justify-start items-center gap-2 hover:bg-gray-200 cursor-pointer"><BiSolidRightArrow /> Brick Title</div>
                         <div className="flex justify-start items-center gap-2 hover:bg-gray-200 cursor-pointer"><BiSolidRightArrow /> Attribute Title</div>
                         </div>
-                    )} */}
+                    )}
               </div>
             </div>
 
             <div className='p-2 w-[50%]'>
-                <div className='flex justify-end gap-2 pt-5'>
-                    <input 
+                <div className='flex justify-end gap-2 pt-4'>
+                    {/* <input 
                         className='w-[60%] py-2 flex justify-start items-center px-3 rounded-md font-semibold'
                         placeholder='Airbrushing Equipments'
+                        /> */}
+                    <div className='w-[60%]'>
+
+                        <Autocomplete
+                            id="zone"
+                            options={unitCode}
+                            getOptionLabel={(option) => option}
+                            onChange={handleKeywordsChange}
+                            value={selectedUnitCode}
+
+                            onInputChange={(event, value) => {
+                                if (!value) {
+                                    // perform operation when input is cleared
+                                    console.log("Input cleared");
+
+                                }
+                            }}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    InputProps={{
+                                        ...params.InputProps,
+                                        className: "text-white",
+                                    }}
+                                    InputLabelProps={{
+                                        ...params.InputLabelProps,
+                                        style: { color: "white" },
+                                    }}
+
+                                    className="bg-gray-50 border border-gray-300 text-white text-xs rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-1.5 md:p-2.5"
+                                    placeholder="Enter/Keywords"
+                                    required
+                                />
+                            )}
+                            classes={{
+                                endAdornment: "text-white",
+                            }}
+                            sx={{
+                                '& .MuiAutocomplete-endAdornment': {
+                                    color: 'white',
+                                },
+                            }}
                         />
+                        </div>
                     <button className='w-[20%] text-white font-semibold rounded-md py-2 bg-primary'>
                         Search
                     </button>
