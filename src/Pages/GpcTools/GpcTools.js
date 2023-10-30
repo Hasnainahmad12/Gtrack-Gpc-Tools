@@ -40,7 +40,7 @@ const GpcTools = () => {
                         <option>EUDAMED</option>
                         <option>NCS</option>
                     </select>
-                    {isSubmenuVisible && (
+                    {/* {isSubmenuVisible && (
                         <div className="absolute z-10 flex flex-col gap-2 bg-white px-4 py-2 rounded-md shadow-lg mt-2 space-y-1 ml-10 w-full sm:w-[60%]">
                         <div className="flex justify-start items-center gap-2 hover:bg-gray-200 cursor-pointer"><BiSolidRightArrow /> Family</div>
                         <div className="flex justify-start items-center gap-2 hover:bg-gray-200 cursor-pointer"><BiSolidRightArrow /> Segment</div>
@@ -48,7 +48,7 @@ const GpcTools = () => {
                         <div className="flex justify-start items-center gap-2 hover:bg-gray-200 cursor-pointer"><BiSolidRightArrow /> Brick Title</div>
                         <div className="flex justify-start items-center gap-2 hover:bg-gray-200 cursor-pointer"><BiSolidRightArrow /> Attribute Title</div>
                         </div>
-                    )}
+                    )} */}
               </div>
             </div>
 
