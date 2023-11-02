@@ -107,6 +107,17 @@ const GpcTools = () => {
 
     const handleCardApiData = async () => {
         setIsLoading(true);
+        // add the swal message if the user does not select any gpc code
+        if (!gpcCode) {
+            setIsLoading(false);
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Please select a GPC code!',
+                timer: 2000,
+            })
+            return;
+        }
         try {
             // const res = await newRequest.get(`http://gs1ksa.org:3077/api/findSimilarSchemas?valueTitle=-- Pure- bred breeding animals:`);
             const res = await newRequest.get(`http://gs1ksa.org:3077/api/findSimilarSchemas?valueTitle=${gpcCode}`);
