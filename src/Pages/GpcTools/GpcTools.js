@@ -379,13 +379,6 @@ const GpcTools = () => {
                                 </p>
                                 <p className="">
                                 {/* By Details */}
-                                {/* <ByDetailsPopUp
-                                    handleClosePopUp={handleClose}
-                                    handleOpenPopUp={handleOpen}
-                                    openPopUp={open}
-                                    title={"By Details"}
-
-                                /> */}
                                 <ByDetailsPopUp
                                     handleClosePopUp={handleClose}
                                     handleOpenPopUp={() => handleOpenDetailsPopup(item)}
