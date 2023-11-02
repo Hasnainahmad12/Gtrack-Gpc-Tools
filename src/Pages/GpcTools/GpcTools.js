@@ -1,6 +1,5 @@
 import React, { useRef, useState } from 'react'
 import gtrackIcon from '../../Images/gtrackicons.png'
-import { BiSolidRightArrow } from 'react-icons/bi';
 import { Autocomplete, TextField } from '@mui/material';
 import { CircularProgress } from '@mui/material';
 import ByDetailsPopUp from '../../Components/ByDetailsPopUp/ByDetailsPopUp';
@@ -11,7 +10,6 @@ import Swal from 'sweetalert2';
  
 const GpcTools = () => {
     const [activeTab, setActiveTab] = useState('GPC');
-    const [isSubmenuVisible, setIsSubmenuVisible] = useState(false);
     const [gpcList, setGpcList] = useState([]); // gpc list
     const [gpc, setGpc] = useState(null);
     const [gpcCode, setGpcCode] = useState(null); // Define gpcCode state
@@ -21,20 +19,11 @@ const GpcTools = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [cardData, setCardData] = useState([])
 
-   
-
     const handleTabChange = (tab) => {
       setActiveTab(tab);
-    
+      setGpcList([]); // Clear the gpc list
+      console.log(tab);
     };
-
-    const handleSelectChange = (event) => {
-        if (event.target.value === 'GPC') {
-          setIsSubmenuVisible(true);
-        } else {
-          setIsSubmenuVisible(false);
-        }
-      };
 
     // this is the popup code
     const [open, setOpen] = useState(false);
@@ -46,6 +35,56 @@ const GpcTools = () => {
         // close the popup
         setOpen(false);
     }
+
+    // const handleAutoCompleteInputChange = async (event, newInputValue, reason) => {
+    //     if (reason === 'reset' || reason === 'clear') {
+    //       setGpcList([]); // Clear the data list if there is no input
+    //       return; // Do not perform search if the input is cleared or an option is selected
+    //     }
+      
+    //     if (reason === 'option') {
+    //       return; // Do not perform search if the option is selected
+    //     }
+      
+    //     if (!newInputValue || newInputValue.trim() === '') {
+    //       // Perform operation when input is cleared
+    //       setGpcList([]);
+    //       return;
+    //     }
+      
+    //     setAutocompleteLoading(true);
+    //     setSearchOpen(true);
+      
+    //     try {
+    //       if (abortControllerRef.current) {
+    //         abortControllerRef.current.abort();
+    //       }
+      
+    //       abortControllerRef.current = new AbortController();
+    //       const res = await newRequest.get(`/searchGridItemsByItemEnglishName?searchWord=${newInputValue}`, {
+    //         signal: abortControllerRef.current.signal
+    //       });
+      
+    //       const products = res.data || [];
+    //       setGpcList(products);
+    //       setSearchOpen(true);
+    //       setAutocompleteLoading(false);
+
+    //     //   handleCardData();
+    //     } catch (error) {
+    //       if (error.name === 'AbortError') {
+    //         // Ignore abort errors
+    //         setGpcList([]); // Clear the data list if there is no input
+    //         setAutocompleteLoading(true);
+    //         console.error(error);
+    //         return;
+    //       }
+    //       console.error(error);
+    //       setGpcList([]); // Clear the data list if an error occurs
+    //       setSearchOpen(false);
+    //       setAutocompleteLoading(false);
+    //     }
+    //   }
 
     const handleAutoCompleteInputChange = async (event, newInputValue, reason) => {
         if (reason === 'reset' || reason === 'clear') {
@@ -72,16 +111,23 @@ const GpcTools = () => {
           }
       
           abortControllerRef.current = new AbortController();
-          const res = await newRequest.get(`/searchGridItemsByItemEnglishName?searchWord=${newInputValue}`, {
-            signal: abortControllerRef.current.signal
-          });
+          
+          if (activeTab === 'HSCODE') {
+            // Call the HSCODE API
+            const res = await newRequest.get(`/searchGridItemsByItemEnglishName?searchWord=${newInputValue}`, {
+              signal: abortControllerRef.current.signal
+            });
+            const products = res.data || [];
+            setGpcList(products);
+          } else if (activeTab === 'GPC') {
+            // Call the GPC API
+            const res = await newRequest.get(`/searchSchemaByAttributeValueTitleOrBrickTitle?searchWord=${newInputValue}`);
+            const products = res.data || [];
+            setGpcList(products);
+          }
       
-          const products = res.data || [];
-          setGpcList(products);
           setSearchOpen(true);
           setAutocompleteLoading(false);
-
-        //   handleCardData();
         } catch (error) {
           if (error.name === 'AbortError') {
             // Ignore abort errors
@@ -96,6 +142,7 @@ const GpcTools = () => {
           setAutocompleteLoading(false);
         }
       }
+      
 
     const handleGPCAutoCompleteChange = (event, value) => {
         console.log(value);
@@ -176,31 +223,24 @@ const GpcTools = () => {
                 <div className='relative'>
                     <select 
                         className='sm:w-[60%] w-full py-2 flex justify-start items-center px-1 rounded-md font-semibold'
-                        onChange={handleSelectChange}
+                        onChange={(event) => handleTabChange(event.target.value)}
                     >
                         <option>-Select Tools-</option>
+                        {/* <option value="GPC">GPC</option>
+                        <option>HS-CODES</option> */}
                         <option value="GPC">GPC</option>
-                        <option>HS-CODES</option>
+                        <option value="HSCODE">HS-CODES</option>
                         <option>UNSPSC</option>
                         <option>EUDAMED</option>
                         <option>NCS</option>
                     </select>
-                    {isSubmenuVisible && (
-                        <div className="absolute z-10 flex flex-col gap-2 bg-white px-4 py-2 rounded-md shadow-lg mt-2 space-y-1 ml-10 w-full sm:w-[60%]">
-                        <div className="flex justify-start items-center gap-2 hover:bg-gray-200 cursor-pointer"><BiSolidRightArrow /> Family</div>
-                        <div className="flex justify-start items-center gap-2 hover:bg-gray-200 cursor-pointer"><BiSolidRightArrow /> Segment</div>
-                        <div className="flex justify-start items-center gap-2 hover:bg-gray-200 cursor-pointer"><BiSolidRightArrow /> Class title</div>
-                        <div className="flex justify-start items-center gap-2 hover:bg-gray-200 cursor-pointer"><BiSolidRightArrow /> Brick Title</div>
-                        <div className="flex justify-start items-center gap-2 hover:bg-gray-200 cursor-pointer"><BiSolidRightArrow /> Attribute Title</div>
-                        </div>
-                    )}
               </div>
             </div>
 
             <div className='p-2 w-[50%]'>
                 <div className='flex justify-end gap-2 pt-4'>
               
-                     <div className='w-[60%]'>
+                     {/* <div className='w-[60%]'>
 
                             <Autocomplete
                                 id="serachGpc"
@@ -258,7 +298,69 @@ const GpcTools = () => {
                             />
 
 
-                        </div>
+                        </div> */}
+                        <div className='w-[60%]'>
+                            
+                            <Autocomplete
+                                id="serachGpc"
+                                required
+                                options={gpcList}
+                                getOptionLabel={(option) => {
+                                if (activeTab === 'GPC') {
+                                    return option?.AttributeTitle || 'No options';
+                                }
+                                return option?.ItemEnglishName || 'No options';
+                                }}
+                                onChange={handleGPCAutoCompleteChange}
+                                value={gpc}
+                                onInputChange={(event, newInputValue, params) => handleAutoCompleteInputChange(event, newInputValue, params)}
+                                loading={autocompleteLoading}
+                                open={searchOpen}
+                                onOpen={() => {
+                                setSearchOpen(true); // Open the Autocomplete
+                                }}
+                                onClose={() => {
+                                setSearchOpen(false); // Close the Autocomplete
+                                }}
+                                renderOption={(props, option) => (
+                                <li {...props}>
+                                    {activeTab === 'GPC' ? option?.AttributeTitle : option?.ItemEnglishName || 'No options'}
+                                </li>
+                                )}
+                                renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="Search Keywords here"
+                                    InputProps={{
+                                    ...params.InputProps,
+                                    endAdornment: (
+                                        <React.Fragment>
+                                        {autocompleteLoading ? <CircularProgress color="inherit" size={20} /> : null}
+                                        {params.InputProps.endAdornment}
+                                        </React.Fragment>
+                                    ),
+                                    }}
+                                    sx={{
+                                    '& label.Mui-focused': {
+                                        color: '#00006A',
+                                    },
+                                    '& .MuiInput-underline:after': {
+                                        borderBottomColor: '#00006A',
+                                    },
+                                    '& .MuiOutlinedInput-root': {
+                                        '&:hover fieldset': {
+                                        borderColor: '#000000',
+                                        },
+                                        '&.Mui-focused fieldset': {
+                                        borderColor: '#000000',
+                                        },
+                                    },
+                                    }}
+                                />
+                                )}
+                            />
+                            </div>
+
                     <button 
                         className='w-[20%] text-white font-semibold rounded-md py-2 bg-primary hover:bg-blue-800'
                         onClick={handleCardApiData}
