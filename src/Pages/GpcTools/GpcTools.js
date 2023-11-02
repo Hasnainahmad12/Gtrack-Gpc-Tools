@@ -146,44 +146,92 @@ const GpcTools = () => {
 
     const handleGPCAutoCompleteChange = (event, value) => {
         console.log(value);
-        setGpc(value);
-        setGpcCode(value?.ItemEnglishName);
-        console.log(value?.ItemEnglishName);
-    }
+        
+        if (activeTab === 'GPC') {
+          setGpc(value);
+          setGpcCode(value?.AttributeTitle);
+        } else if (activeTab === 'HS-CODES') {
+          setGpc(value);
+          setGpcCode(value?.ItemEnglishName);
+        }
+      
+        console.log(activeTab === 'GPC' ? value?.AttributeTitle : value?.ItemEnglishName);
+      }
+      
 
+    // const handleCardApiData = async () => {
+    //     setIsLoading(true);
+    //     // add the swal message if the user does not select any gpc code
+    //     if (!gpcCode) {
+    //         setIsLoading(false);
+    //         Swal.fire({
+    //             icon: 'error',
+    //             title: 'Oops...',
+    //             text: 'Please select a GPC code!',
+    //             timer: 2000,
+    //         })
+    //         return;
+    //     }
+    //     try {
+    //         // const res = await newRequest.get(`http://gs1ksa.org:3077/api/findSimilarSchemas?valueTitle=-- Pure- bred breeding animals:`);
+    //         const res = await newRequest.get(`http://gs1ksa.org:3077/api/findSimilarSchemas?valueTitle=${gpcCode}`);
+    //         console.log(res.data);
+    //         setCardData(res.data);
+    //         setIsLoading(false);
+
+    //     } catch (error) {
+    //         console.log(error);
+    //         setIsLoading(false);
+    //         Swal.fire({
+    //             icon: 'error',
+    //             title: 'Oops...',
+    //             text: error?.response?.data?.message || 'Something went wrong!',
+    //             timer: 2000,
+    //         })
+    //     }
+    // }
 
     const handleCardApiData = async () => {
         setIsLoading(true);
-        // add the swal message if the user does not select any gpc code
-        if (!gpcCode) {
-            setIsLoading(false);
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: 'Please select a GPC code!',
-                timer: 2000,
-            })
-            return;
+        
+        // Add the API URL based on the active tab (GPC or HS-CODES)
+        let apiURL = '';
+      
+        if (activeTab === 'HSCODE') {
+          apiURL = `http://gs1ksa.org:3077/api/findSimilarSchemas?valueTitle=${gpcCode}`;
+        } else if (activeTab === 'GPC') {
+          apiURL = `http://gs1ksa.org:3077/api/getSimilarGrid?item=${gpcCode}`;
         }
+      
+        // Check if an API URL was set
+        if (!apiURL) {
+          setIsLoading(false);
+          Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'Please select a GPC code!',
+            timer: 2000,
+          });
+          return;
+        }
+      
         try {
-            // const res = await newRequest.get(`http://gs1ksa.org:3077/api/findSimilarSchemas?valueTitle=-- Pure- bred breeding animals:`);
-            const res = await newRequest.get(`http://gs1ksa.org:3077/api/findSimilarSchemas?valueTitle=${gpcCode}`);
-            console.log(res.data);
-            setCardData(res.data);
-            setIsLoading(false);
-
+          const res = await newRequest.get(apiURL);
+          console.log(res.data);
+          setCardData(res.data);
+          setIsLoading(false);
         } catch (error) {
-            console.log(error);
-            setIsLoading(false);
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: error?.response?.data?.message || 'Something went wrong!',
-                timer: 2000,
-            })
+          console.log(error);
+          setIsLoading(false);
+          Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: error?.response?.data?.message || 'Something went wrong!',
+            timer: 2000,
+          });
         }
-    }
-
+      };
+      
     const [selectedItemData, setSelectedItemData] = useState(null);
     
     const handleOpenDetailsPopup = (itemData) => {
@@ -300,7 +348,7 @@ const GpcTools = () => {
 
                         </div> */}
                         <div className='w-[60%]'>
-                            
+
                             <Autocomplete
                                 id="serachGpc"
                                 required
