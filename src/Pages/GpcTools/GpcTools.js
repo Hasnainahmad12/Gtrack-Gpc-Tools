@@ -137,6 +137,14 @@ const GpcTools = () => {
         }
     }
 
+    const [selectedItemData, setSelectedItemData] = useState(null);
+    
+    const handleOpenDetailsPopup = (itemData) => {
+        handleOpen(); // Open the details popup
+        setSelectedItemData(itemData);
+    };
+    
+
 
 
   return (
@@ -334,7 +342,7 @@ const GpcTools = () => {
 
             return (
                 <article key={index} className="rounded-lg bg-white p-2 shadow-lg hover:shadow-xl hover:transform hover:scale-105 duration-300 ">
-                    <div className="relative h-36 flex items-end overflow-hidden rounded-xl">
+                    <div className="relative h-28 flex items-end overflow-hidden rounded-xl">
                         {/* <img 
                             className='' 
                             src="https://images.unsplash.com/photo-1515955656352-a1fa3ffcd111?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80" alt="image"
@@ -347,8 +355,16 @@ const GpcTools = () => {
                     </div>
 
                     <div className="mt-1 p-2 flex flex-col gap-1">
-                        <div className='flex justify-between items-center'>
-                            <p className="text-sm font-semibold text-slate-700">{item?.AttributeDefinition}</p>
+                        <div className='flex flex-col justify-start items-start'>
+                            <div>
+                                <p className="text-sm font-bold text-slate-700">{item?.BrickCode}</p>
+                                <p className="text-sm font-semibold text-slate-700">{item?.BrickTitle}</p>
+                            </div>
+                            <div className='mt-3'>
+                                <p className="text-sm font-bold text-slate-700">{item?.AttributeCode}</p>
+                                <p className="text-sm font-semibold text-slate-700">{item?.AttributeTitle}</p>
+                            </div>
+                            
                             {/* <p className="mt-1 font-semibold text-sm text-slate-700">Product Arabic</p> */}
                         </div>
                 
@@ -363,12 +379,19 @@ const GpcTools = () => {
                                 </p>
                                 <p className="">
                                 {/* By Details */}
-                                <ByDetailsPopUp
+                                {/* <ByDetailsPopUp
                                     handleClosePopUp={handleClose}
                                     handleOpenPopUp={handleOpen}
                                     openPopUp={open}
                                     title={"By Details"}
 
+                                /> */}
+                                <ByDetailsPopUp
+                                    handleClosePopUp={handleClose}
+                                    handleOpenPopUp={() => handleOpenDetailsPopup(item)}
+                                    openPopUp={open}
+                                    title={"By Details"}
+                                    apiResponse={selectedItemData}
                                 />
                                 </p>
                             </div>

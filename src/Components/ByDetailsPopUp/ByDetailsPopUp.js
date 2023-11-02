@@ -16,7 +16,7 @@ const style = {
   width: '80%',
   height: '75%',
   maxWidth: '80%',
-  maxHeight: '80%',
+  maxHeight: '65%',
   bgcolor: 'background.paper',
   boxShadow: 24,
   p: 4,
@@ -32,7 +32,8 @@ const ByDetailsPopUp = ({ title, handleOpenPopUp, handleClosePopUp, openPopUp, o
     const toggleOpen = () => {
         setOpen(!open);
       };
-    
+  
+      // console.log(apiResponse)
     const toggleSubOpen = (e) => {
         e.stopPropagation(); // Prevent parent from closing when a sub-item is clicked
         setSubOpen(!subOpen);
@@ -60,6 +61,12 @@ const ByDetailsPopUp = ({ title, handleOpenPopUp, handleClosePopUp, openPopUp, o
         open={openPopUp}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
+        className="custom-modal"
+        BackdropProps={{
+          style: {
+            backgroundColor: 'rgba(0, 0, 0, 0)', // Fully transparent background
+          },
+        }}
       >
         <Box
           sx={{
@@ -101,7 +108,7 @@ const ByDetailsPopUp = ({ title, handleOpenPopUp, handleClosePopUp, openPopUp, o
           ) : (
             <div className="p-3 h-full shadow" style={{ maxHeight: '100%', overflowY: 'auto' }}>
               <h1 className='font-normal bg-primary text-white px-2 py-1'>Detailed Information</h1>
-              <ul className='h-[80vh] w-full'>
+              <ul className='w-full'>
                 <li>
                     <a
                     href="#"
@@ -113,8 +120,7 @@ const ByDetailsPopUp = ({ title, handleOpenPopUp, handleClosePopUp, openPopUp, o
                     ) : (
                         <FaAngleRight />
                     )}
-                    {/* <h1 className='font-bold'>Segment: </h1> {gpcData?.data?.SegmentTitle} */}
-                    <h1 className='font-bold'>Segment: </h1> Segment Title
+                    <h1 className='font-bold'>Segment: </h1> {apiResponse?.SegmentTitle}
                     </a>
                     <ul className={`ml-6 ${open ? 'block' : 'hidden'}`}>
                     {/* <li className="px-2 hover:bg-secondary-100">{gpcData?.data?.SegmentCode}</li> */}
@@ -130,12 +136,10 @@ const ByDetailsPopUp = ({ title, handleOpenPopUp, handleClosePopUp, openPopUp, o
                         ) : (
                             <FaAngleRight />
                         )}
-                        {/* <h1 className='font-bold'>FamilyTitle: </h1>{gpcData?.data?.FamilyTitle} */}
-                        <h1 className='font-bold'>FamilyTitle: </h1> Fimily Title
+                        <h1 className='font-bold'>FamilyTitle: </h1>{apiResponse?.FamilyTitle}
                         </a>
                         <ul className={`ml-6 ${subOpen ? 'block' : 'hidden'}`}>
-                        {/* <li className="px-2 hover:bg-secondary-100">{gpcData?.data?.FamilyCode}</li> */}
-                        <li className="px-2 hover:bg-secondary-100">Family Code</li>
+                        <li className="px-2 hover:bg-secondary-100">{apiResponse?.FamilyCode}</li>
                         <li>
                             <a
                             href="#"
@@ -147,12 +151,10 @@ const ByDetailsPopUp = ({ title, handleOpenPopUp, handleClosePopUp, openPopUp, o
                             ) : (
                                 <FaAngleRight />
                             )}
-                            {/* <h1 className='font-bold'>Class: </h1>{gpcData?.data?.ClassTitle} */}
-                            <h1 className='font-bold'>Class: </h1> Class Title
+                            <h1 className='font-bold'>Class Title: </h1>{apiResponse?.ClassTitle}
                             </a>
                             <ul className={`ml-10 ${thirdOpen ? 'block' : 'hidden'}`}>
-                            {/* <li className="px-2 hover:bg-secondary-100">{gpcData?.data?.ClassCode}</li> */}
-                            <li className="px-2 hover:bg-secondary-100">Class Code</li>
+                            <li className="px-2 hover:bg-secondary-100">{apiResponse?.ClassCode}</li>
                             </ul>
                         </li>
                         <li>
@@ -166,12 +168,10 @@ const ByDetailsPopUp = ({ title, handleOpenPopUp, handleClosePopUp, openPopUp, o
                             ) : (
                                 <FaAngleRight />
                             )}
-                            {/* <h1 className='font-bold'>Brick: </h1> {gpcData?.data?.BrickTitle} */}
-                            <h1 className='font-bold'>Brick: </h1> Title
+                            <h1 className='font-bold'>Brick Title: </h1> {apiResponse?.BrickTitle}
                             </a>
                             <ul className={`ml-16 ${fourthOpen ? 'block' : 'hidden'}`}>
-                            {/* <li className="px-2 hover:bg-secondary-100">{gpcData?.data?.BrickCode}</li> */}
-                            <li className="px-2 hover:bg-secondary-100">Brick Code</li>
+                            <li className="px-2 hover:bg-secondary-100">{apiResponse?.BrickCode}</li>
                             </ul>
                         </li> 
                       </ul>
