@@ -1,20 +1,32 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import gtrackIcon from '../../Images/gtrackicons.png'
 import { BiSolidRightArrow } from 'react-icons/bi';
 import { Autocomplete, TextField } from '@mui/material';
+import { CircularProgress } from '@mui/material';
+import ByDetailsPopUp from '../../Components/ByDetailsPopUp/ByDetailsPopUp';
+import newRequest from '../../utils/userRequest';
+import { RiseLoader } from 'react-spinners';
+import Swal from 'sweetalert2';
+
 
 const GpcTools = () => {
     const [activeTab, setActiveTab] = useState('GPC');
     const [isSubmenuVisible, setIsSubmenuVisible] = useState(false);
-    const [unitCode, setUnitCode] = useState([]);
-    const [selectedUnitCode, setSelectedUnitCode] = useState('');
+    const [gpcList, setGpcList] = useState([]); // gpc list
+    const [gpc, setGpc] = useState(null);
+    const [gpcCode, setGpcCode] = useState(null); // Define gpcCode state
+    const [autocompleteLoading, setAutocompleteLoading] = useState(false);
+    const abortControllerRef = useRef(null);
+    const [searchOpen, setSearchOpen] = useState(false);    
+    const [isLoading, setIsLoading] = useState(false);
+    const [cardData, setCardData] = useState([])
+
    
-    
-   const handleTabChange = (tab) => {
+
+    const handleTabChange = (tab) => {
       setActiveTab(tab);
     
     };
-
 
     const handleSelectChange = (event) => {
         if (event.target.value === 'GPC') {
@@ -24,16 +36,119 @@ const GpcTools = () => {
         }
       };
 
-    
-      const handleKeywordsChange = (event, value) => {
-        console.log(value);
-        setSelectedUnitCode(value);
+    // this is the popup code
+    const [open, setOpen] = useState(false);
+    const handleOpen = () => {
+        setOpen(true);
     };
 
-    
+    const handleClose = () => {
+        // close the popup
+        setOpen(false);
+    }
+
+    const handleAutoCompleteInputChange = async (event, newInputValue, reason) => {
+        if (reason === 'reset' || reason === 'clear') {
+          setGpcList([]); // Clear the data list if there is no input
+          return; // Do not perform search if the input is cleared or an option is selected
+        }
+      
+        if (reason === 'option') {
+          return; // Do not perform search if the option is selected
+        }
+      
+        if (!newInputValue || newInputValue.trim() === '') {
+          // Perform operation when input is cleared
+          setGpcList([]);
+          return;
+        }
+      
+        setAutocompleteLoading(true);
+        setSearchOpen(true);
+      
+        try {
+          if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+          }
+      
+          abortControllerRef.current = new AbortController();
+          const res = await newRequest.get(`/searchGridItemsByItemEnglishName?searchWord=${newInputValue}`, {
+            signal: abortControllerRef.current.signal
+          });
+      
+          const products = res.data || [];
+          setGpcList(products);
+          setSearchOpen(true);
+          setAutocompleteLoading(false);
+
+        //   handleCardData();
+        } catch (error) {
+          if (error.name === 'AbortError') {
+            // Ignore abort errors
+            setGpcList([]); // Clear the data list if there is no input
+            setAutocompleteLoading(true);
+            console.error(error);
+            return;
+          }
+          console.error(error);
+          setGpcList([]); // Clear the data list if an error occurs
+          setSearchOpen(false);
+          setAutocompleteLoading(false);
+        }
+      }
+
+    const handleGPCAutoCompleteChange = (event, value) => {
+        console.log(value);
+        setGpc(value);
+        setGpcCode(value?.ItemEnglishName);
+        console.log(value?.ItemEnglishName);
+    }
+
+
+    const handleCardApiData = async () => {
+        setIsLoading(true);
+        try {
+            // const res = await newRequest.get(`http://gs1ksa.org:3077/api/findSimilarSchemas?valueTitle=-- Pure- bred breeding animals:`);
+            const res = await newRequest.get(`http://gs1ksa.org:3077/api/findSimilarSchemas?valueTitle=${gpcCode}`);
+            console.log(res.data);
+            setCardData(res.data);
+            setIsLoading(false);
+
+        } catch (error) {
+            console.log(error);
+            setIsLoading(false);
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: error?.response?.data?.message || 'Something went wrong!',
+                timer: 2000,
+            })
+        }
+    }
+
+
 
   return (
     <div>
+        {isLoading &&
+
+            <div className='loading-spinner-background'
+                style={{
+                    zIndex: 9999, position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(255, 255, 255, 0.5)',
+                    display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'fixed'
+
+
+                }}
+            >
+            <RiseLoader
+                size={18}
+                color={"#6439ff"}
+                // height={4}
+                loading={isLoading}
+            />
+            </div>
+        }
+
       <div className="py-1">
 
         <div className='h-24 w-full flex justify-between bg-gray-100 px-4'>
@@ -65,54 +180,70 @@ const GpcTools = () => {
 
             <div className='p-2 w-[50%]'>
                 <div className='flex justify-end gap-2 pt-4'>
-                    {/* <input 
-                        className='w-[60%] py-2 flex justify-start items-center px-3 rounded-md font-semibold'
-                        placeholder='Airbrushing Equipments'
-                        /> */}
-                    <div className='w-[60%]'>
+              
+                     <div className='w-[60%]'>
 
-                        <Autocomplete
-                            id="zone"
-                            options={unitCode}
-                            getOptionLabel={(option) => option}
-                            onChange={handleKeywordsChange}
-                            value={selectedUnitCode}
+                            <Autocomplete
+                                id="serachGpc"
+                                required
+                                options={gpcList}
+                                getOptionLabel={(option) => option?.ItemEnglishName || ''}
+                                onChange={handleGPCAutoCompleteChange}
+                                value={gpc}
+                                onInputChange={(event, newInputValue, params) => handleAutoCompleteInputChange(event, newInputValue, params)}
+                                loading={autocompleteLoading}
+                                open={searchOpen}
+                                onOpen={() => {
+                                    setSearchOpen(true); // Open the Autocomplete
+                                }}
+                                onClose={() => {
+                                    setSearchOpen(false); // Close the Autocomplete
+                                }}
+                                renderOption={(props, option) => (
+                                    <li {...props}>
+                                        {option ? option.ItemEnglishName : 'No options'}
+                                    </li>
+                                )}
 
-                            onInputChange={(event, value) => {
-                                if (!value) {
-                                    // perform operation when input is cleared
-                                    console.log("Input cleared");
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        label="Search Keywords here"
+                                        InputProps={{
+                                            ...params.InputProps,
+                                            endAdornment: (
+                                                <React.Fragment>
+                                                    {autocompleteLoading ? <CircularProgress color="inherit" size={20} /> : null}
+                                                    {params.InputProps.endAdornment}
+                                                </React.Fragment>
+                                            ),
+                                        }}
+                                        sx={{
+                                            '& label.Mui-focused': {
+                                                color: '#00006A',
+                                            },
+                                            '& .MuiInput-underline:after': {
+                                                borderBottomColor: '#00006A',
+                                            },
+                                            '& .MuiOutlinedInput-root': {
+                                                '&:hover fieldset': {
+                                                    borderColor: '#000000',
+                                                },
+                                                '&.Mui-focused fieldset': {
+                                                    borderColor: '#000000',
+                                                },
+                                            },
+                                        }}
+                                    />
+                                )}
+                            />
 
-                                }
-                            }}
-                            renderInput={(params) => (
-                                <TextField
-                                    {...params}
-                                    InputProps={{
-                                        ...params.InputProps,
-                                        className: "text-white",
-                                    }}
-                                    InputLabelProps={{
-                                        ...params.InputLabelProps,
-                                        style: { color: "white" },
-                                    }}
 
-                                    className="bg-gray-50 border border-gray-300 text-white text-xs rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-1.5 md:p-2.5"
-                                    placeholder="Enter/Keywords"
-                                    required
-                                />
-                            )}
-                            classes={{
-                                endAdornment: "text-white",
-                            }}
-                            sx={{
-                                '& .MuiAutocomplete-endAdornment': {
-                                    color: 'white',
-                                },
-                            }}
-                        />
                         </div>
-                    <button className='w-[20%] text-white font-semibold rounded-md py-2 bg-primary'>
+                    <button 
+                        className='w-[20%] text-white font-semibold rounded-md py-2 bg-primary hover:bg-blue-800'
+                        onClick={handleCardApiData}
+                        >
                         Search
                     </button>
                 </div>
@@ -176,22 +307,24 @@ const GpcTools = () => {
          {/* Content based on the active tab */}
             {activeTab === 'GPC' && (
                 <div>
-                {/* Content for the GPC tab */}
-                {/* Add your content specific to the GPC tab here */}
+                    {/* Content for the GPC tab */}
                 </div>
             )}
 
             {activeTab === 'HS-CODES' && (
                 <div>
-                {/* Content for the HS-CODES tab */}
-                {/* Add your content specific to the HS-CODES tab here */}
+                     {/* Content for the HS-CODES tab */}
                 </div>
             )}
 
+       
          <div className="mx-auto grid max-w-6xl grid-cols-1 gap-5 p-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 mt-4">
-            <article className="rounded-lg bg-white p-2 shadow-lg hover:shadow-xl hover:transform hover:scale-105 duration-300 ">
-                    <div className="relative h-56 flex items-end overflow-hidden rounded-xl">
-                        <img 
+         {cardData?.map((item, index) => {
+
+            return (
+                <article key={index} className="rounded-lg bg-white p-2 shadow-lg hover:shadow-xl hover:transform hover:scale-105 duration-300 ">
+                    <div className="relative h-36 flex items-end overflow-hidden rounded-xl">
+                        {/* <img 
                             className='' 
                             src="https://images.unsplash.com/photo-1515955656352-a1fa3ffcd111?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80" alt="image"
                             style={{
@@ -199,12 +332,12 @@ const GpcTools = () => {
                                 height: '100%', margin: 'auto'
                                 }}
 
-                            />
+                            /> */}
                     </div>
 
                     <div className="mt-1 p-2 flex flex-col gap-1">
                         <div className='flex justify-between items-center'>
-                            <p className="text-sm font-semibold text-slate-700">ADIDAS Men White Sports Shoes</p>
+                            <p className="text-sm font-semibold text-slate-700">{item?.AttributeDefinition}</p>
                             {/* <p className="mt-1 font-semibold text-sm text-slate-700">Product Arabic</p> */}
                         </div>
                 
@@ -217,113 +350,24 @@ const GpcTools = () => {
                                 <p className="mt-1 text-sm text-slate-700 border-2 border-gray-400 rounded-md py-2 px-4 cursor-pointer hover:bg-gray-100">
                                 By Image
                                 </p>
-                            </div>
-                        </div>
-                    </div>                     
-                </article>
+                                <p className="">
+                                {/* By Details */}
+                                <ByDetailsPopUp
+                                    handleClosePopUp={handleClose}
+                                    handleOpenPopUp={handleOpen}
+                                    openPopUp={open}
+                                    title={"By Details"}
 
-
-                <article className="rounded-lg bg-white p-2 shadow-lg hover:shadow-xl hover:transform hover:scale-105 duration-300 ">
-                    <div className="relative h-56 flex items-end overflow-hidden rounded-xl">
-                        <img 
-                            className='' 
-                            src="https://images.unsplash.com/photo-1515955656352-a1fa3ffcd111?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80" alt="image"
-                            style={{
-                                objectFit: 'contain',
-                                height: '100%', margin: 'auto'
-                                }}
-
-                            />
-                    </div>
-
-                    <div className="mt-1 p-2 flex flex-col gap-1">
-                        <div className='flex justify-between items-center'>
-                            <p className="text-sm font-semibold text-slate-700">ADIDAS Men White Sports Shoes</p>
-                            {/* <p className="mt-1 font-semibold text-sm text-slate-700">Product Arabic</p> */}
-                        </div>
-                
-                        <div className="">
-                            <p className="mt-1 font-bold text-sm text-slate-700">View Similar:</p>
-                            <div className="flex gap-1">
-                                <p className="mt-1 text-sm text-slate-700 border-2 border-gray-400 rounded-md py-2 px-4 cursor-pointer hover:bg-gray-100">
-                                By Text
-                                </p>
-                                <p className="mt-1 text-sm text-slate-700 border-2 border-gray-400 rounded-md py-2 px-4 cursor-pointer hover:bg-gray-100">
-                                By Image
+                                />
                                 </p>
                             </div>
                         </div>
-                    </div>                     
+                    </div>    
+
                 </article>
-
-
-                <article className="rounded-lg bg-white p-2 shadow-lg hover:shadow-xl hover:transform hover:scale-105 duration-300 ">
-                    <div className="relative h-56 flex items-end overflow-hidden rounded-xl">
-                        <img 
-                            className='' 
-                            src="https://images.unsplash.com/photo-1515955656352-a1fa3ffcd111?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80" alt="image"
-                            style={{
-                                objectFit: 'contain',
-                                height: '100%', margin: 'auto'
-                                }}
-
-                            />
-                    </div>
-
-                    <div className="mt-1 p-2 flex flex-col gap-1">
-                        <div className='flex justify-between items-center'>
-                            <p className="text-sm font-semibold text-slate-700">ADIDAS Men White Sports Shoes</p>
-                            {/* <p className="mt-1 font-semibold text-sm text-slate-700">Product Arabic</p> */}
-                        </div>
-                
-                        <div className="">
-                            <p className="mt-1 font-bold text-sm text-slate-700">View Similar:</p>
-                            <div className="flex gap-1">
-                                <p className="mt-1 text-sm text-slate-700 border-2 border-gray-400 rounded-md py-2 px-4 cursor-pointer hover:bg-gray-100">
-                                By Text
-                                </p>
-                                <p className="mt-1 text-sm text-slate-700 border-2 border-gray-400 rounded-md py-2 px-4 cursor-pointer hover:bg-gray-100">
-                                By Image
-                                </p>
-                            </div>
-                        </div>
-                    </div>                     
-                </article>
-
-
-                <article className="rounded-lg bg-white p-2 shadow-lg hover:shadow-xl hover:transform hover:scale-105 duration-300 ">
-                    <div className="relative h-56 flex items-end overflow-hidden rounded-xl">
-                        <img 
-                            className='' 
-                            src="https://images.unsplash.com/photo-1515955656352-a1fa3ffcd111?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80" alt="image"
-                            style={{
-                                objectFit: 'contain',
-                                height: '100%', margin: 'auto'
-                                }}
-
-                            />
-                    </div>
-
-                    <div className="mt-1 p-2 flex flex-col gap-1">
-                        <div className='flex justify-between items-center'>
-                            <p className="text-sm font-semibold text-slate-700">ADIDAS Men White Sports Shoes</p>
-                            {/* <p className="mt-1 font-semibold text-sm text-slate-700">Product Arabic</p> */}
-                        </div>
-                
-                        <div className="">
-                            <p className="mt-1 font-bold text-sm text-slate-700">View Similar:</p>
-                            <div className="flex gap-1">
-                                <p className="mt-1 text-sm text-slate-700 border-2 border-gray-400 rounded-md py-2 px-4 cursor-pointer hover:bg-gray-100">
-                                By Text
-                                </p>
-                                <p className="mt-1 text-sm text-slate-700 border-2 border-gray-400 rounded-md py-2 px-4 cursor-pointer hover:bg-gray-100">
-                                By Image
-                                </p>
-                            </div>
-                        </div>
-                    </div>                     
-                </article>
-
+  
+                    ) 
+                })}
 
             </div>
         </div>
