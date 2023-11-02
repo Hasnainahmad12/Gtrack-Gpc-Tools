@@ -8,7 +8,7 @@ import newRequest from '../../utils/userRequest';
 import { RiseLoader } from 'react-spinners';
 import Swal from 'sweetalert2';
 
-
+ 
 const GpcTools = () => {
     const [activeTab, setActiveTab] = useState('GPC');
     const [isSubmenuVisible, setIsSubmenuVisible] = useState(false);
